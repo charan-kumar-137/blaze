@@ -10,7 +10,7 @@ use ratatui::{
     Frame, Terminal,
 };
 
-use crate::{app::App, cpu::CPUInfo, disk::DiskInfo, memory::MemoryInfo};
+use crate::app::App;
 
 pub fn run_app<B: Backend>(
     terminal: &mut Terminal<B>,
@@ -19,7 +19,7 @@ pub fn run_app<B: Backend>(
 ) -> io::Result<()> {
     let mut last_tick = Instant::now();
     loop {
-        terminal.draw(|f| ui(f))?;
+        terminal.draw(|f| ui(f, &mut app))?;
 
         let timeout = tick_rate.saturating_sub(last_tick.elapsed());
         if event::poll(timeout)? {
@@ -36,18 +36,15 @@ pub fn run_app<B: Backend>(
     }
 }
 
-fn ui(frame: &mut Frame) {
+fn ui(frame: &mut Frame, app: &mut App) {
     let area = frame.size();
 
     let vertical = Layout::vertical([Constraint::Percentage(40), Constraint::Percentage(60)]);
     let horizontal = Layout::horizontal([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)]);
-    let [chart1, bottom] = vertical.areas(area);
-    let [line_chart, scatter] = horizontal.areas(bottom);
+    let [cpu_area, remaining_area] = vertical.areas(area);
+    let [memory_area, disk_area] = horizontal.areas(remaining_area);
 
-    let cpu = CPUInfo::new();
-    cpu.render(frame, chart1);
-    let memory = MemoryInfo::new();
-    memory.render(frame, line_chart);
-    let disk = DiskInfo::new();
-    disk.render(frame, scatter);
+    app.cpu.render(frame, cpu_area);
+    app.memory.render(frame, memory_area);
+    app.disk.render(frame, disk_area);
 }

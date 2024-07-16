@@ -37,7 +37,7 @@ fn create_and_run_app() -> Result<(), Box<dyn Error>> {
     let mut terminal = Terminal::new(backend)?;
 
     // create app and run it
-    let tick_rate = Duration::from_secs(1);
+    let tick_rate = Duration::from_millis(1_000);
     let app = app::App::new();
     let res = ui::run_app(&mut terminal, app, tick_rate);
 
